@@ -1,0 +1,199 @@
+{
+  "info": {
+    "name": "Flow Manager API",
+    "description": "CRUD API for managing workflows with database abstraction",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "flowId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Get API Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "Get basic API information and available endpoints"
+      }
+    },
+    {
+      "name": "Create Flow",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('flowId', response.id);",
+              "    pm.environment.set('flowId', response.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sample Workflow\",\n  \"description\": \"This is a sample workflow for testing\",\n  \"flow\": \"{\\\"steps\\\": [\\\"initialize\\\", \\\"process\\\", \\\"validate\\\", \\\"finalize\\\"]}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/flows",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows"]
+        },
+        "description": "Create a new flow. The flow ID will be automatically saved for subsequent requests."
+      }
+    },
+    {
+      "name": "Get All Flows",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/flows",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows"]
+        },
+        "description": "Retrieve all flows from the database"
+      }
+    },
+    {
+      "name": "Get Flow by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/flows/{{flowId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows", "{{flowId}}"]
+        },
+        "description": "Retrieve a specific flow by its ID. Uses the flowId variable set by Create Flow."
+      }
+    },
+    {
+      "name": "Update Flow",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Workflow Name\",\n  \"description\": \"This workflow has been updated with new information\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/flows/{{flowId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows", "{{flowId}}"]
+        },
+        "description": "Update an existing flow. You can update name, description, or flow fields."
+      }
+    },
+    {
+      "name": "Update Flow - Partial",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Only updating the description field\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/flows/{{flowId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows", "{{flowId}}"]
+        },
+        "description": "Partial update - only updates the fields you provide"
+      }
+    },
+    {
+      "name": "Delete Flow",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/flows/{{flowId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows", "{{flowId}}"]
+        },
+        "description": "Delete a flow by its ID"
+      }
+    },
+    {
+      "name": "Create Complex Flow",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Data Processing Pipeline\",\n  \"description\": \"ETL workflow with error handling and notifications\",\n  \"flow\": \"{\\\"version\\\": \\\"1.0\\\", \\\"steps\\\": [{\\\"id\\\": \\\"extract\\\", \\\"type\\\": \\\"source\\\", \\\"config\\\": {\\\"database\\\": \\\"postgres\\\"}}, {\\\"id\\\": \\\"transform\\\", \\\"type\\\": \\\"process\\\", \\\"config\\\": {\\\"rules\\\": [\\\"normalize\\\", \\\"validate\\\"]}}, {\\\"id\\\": \\\"load\\\", \\\"type\\\": \\\"destination\\\", \\\"config\\\": {\\\"target\\\": \\\"warehouse\\\"}}], \\\"schedule\\\": \\\"0 2 * * *\\\", \\\"notifications\\\": {\\\"onSuccess\\\": \\\"email\\\", \\\"onError\\\": \\\"slack\\\"}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/flows",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "flows"]
+        },
+        "description": "Create a more complex flow with detailed configuration"
+      }
+    },
+    {
+      "name": "Swagger UI",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api-docs/",
+          "host": ["{{baseUrl}}"],
+          "path": ["api-docs", ""]
+        },
+        "description": "Access the Swagger UI documentation"
+      }
+    },
+    {
+      "name": "Swagger JSON Spec",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api-docs.json",
+          "host": ["{{baseUrl}}"],
+          "path": ["api-docs.json"]
+        },
+        "description": "Get the OpenAPI specification in JSON format"
+      }
+    }
+  ]
+}
