@@ -1,0 +1,31 @@
+[
+  {
+   
+    "name": "Start",
+    "category": "Generic",
+    "image": "start-icon.png",
+    "namespace": "com.veracode.start",
+    "inputSchema": "",
+    "outputSchema": "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"type\":\"object\",\"required\":[\"inputData\",\"eventType\"],\"properties\":{\"inputData\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"number\"}]},\"eventType\":{\"type\":\"string\",\"description\":\"\"}}}",
+    "propertyScehema": "{\"$schema\":\"http://json-schema.org\",\"title\":\"DropdownandInputFormSchema\",\"type\":\"object\",\"properties\":{\"mode\":{\"type\":\"string\",\"input_type\":\"dropdown\",\"title\":\"Mode\",\"description\":\"Selecttheintegrationmode\",\"enum\":[\"kafka\",\"webhook\",\"veracodecommand\"]},\"command\":{\"type\":\"string\",\"input_type\":\"text\",\"title\":\"Command\",\"description\":\"Enterthecommanddetails\"},\"option\":{\"type\":\"string\",\"input_type\":\"text\",\"title\":\"Option\",\"description\":\"Enteradditionalconfigurationoptions\"}},\"required\":[\"mode\"],\"allOf\":[{\"if\":{\"properties\":{\"mode\":{\"const\":\"veracodecommand\"}}},\"then\":{\"required\":[\"command\",\"option\"]}}]}"
+  },
+  {
+    "name": "Stop",
+    "category": "Generic",
+    "image": "stop-icon.png",
+    "namespace": "com.veracode.stop",
+    "inputSchema": "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"type\":\"object\",\"required\":[\"outputData\"],\"properties\":{\"outputData\":{\"type\":\"string\",\"description\":\"\"}}}",
+    "outputSchema": "",
+    "propertyScehema": ""
+  },
+  {
+    "name": "Addition",
+    "category": "Math",
+    "image": "math-add-icon.png",
+    "namespace": "com.veracode.math.add",
+    "inputSchema": "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"type\":\"object\",\"required\":[\"input_x\",\"input_y\"],\"properties\":{\"input_x\":{\"type\":\"string\",\"description\":\"\"},\"input_y\":{\"type\":\"string\",\"description\":\"\"}}}",
+    "outputSchema": "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"type\":\"object\",\"required\":[\"result\"],\"properties\":{\"result\":{\"type\":\"string\",\"description\":\"\"}}}",
+    "propertyScehema": "{\"$schema\":\"https://json-schema.org\",\"title\":\"DropdownSelection\",\"type\":\"object\",\"properties\":{\"mode\":{\"type\":\"string\",\"input_type\":\"dropdown\",\"title\":\"ExecutionMode\",\"description\":\"Selectwhethertoappendthedataorcalculateanewvalue.\",\"enum\":[\"append\",\"calculate\"]}},\"required\":[\"mode\"]}"
+  }
+
+]

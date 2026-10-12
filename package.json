@@ -18,7 +18,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
     "dev": "ts-node-dev --respawn src/index.ts",
-    "build": "tsc && cp .env dist/.env 2>/dev/null || :",
+    "build": "tsc && cp .env dist/.env 2>/dev/null || : && cp -r src/InitialData dist/InitialData",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",

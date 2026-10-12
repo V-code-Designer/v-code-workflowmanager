@@ -7,6 +7,7 @@ import { createTaskRouter } from './routes/taskRoutes';
 import { createFlowInstanceRouter } from './routes/flowInstanceRoutes';
 import { createTaskInstanceRouter } from './routes/taskInstanceRoutes';
 import { setupSwagger } from './swagger';
+import { DataLoader } from './services/dataLoader';
 
 dotenv.config();
 
@@ -22,6 +23,9 @@ const database: IDatabase = DatabaseFactory.createDatabase(dbType);
 async function startServer() {
   try {
     await database.connect();
+
+    const dataLoader = new DataLoader(database);
+    await dataLoader.loadInitialData();
 
     app.get('/', (_req: Request, res: Response) => {
       res.json({
