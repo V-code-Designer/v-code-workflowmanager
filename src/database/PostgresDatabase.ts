@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool } from 'pg';
 import { IDatabase } from './IDatabase';
 import { Flow } from '../model/flow';
 
@@ -34,6 +34,7 @@ export class PostgresDatabase implements IDatabase {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         flow TEXT NOT NULL,
+        event VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -43,23 +44,23 @@ export class PostgresDatabase implements IDatabase {
 
   async createFlow(flow: Omit<Flow, 'id'>): Promise<Flow> {
     const query = `
-      INSERT INTO flows (name, description, flow)
-      VALUES ($1, $2, $3)
-      RETURNING id, name, description, flow;
+      INSERT INTO flows (name, description, flow, event)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, name, description, flow, event;
     `;
-    const values = [flow.name, flow.description, flow.flow];
+    const values = [flow.name, flow.description, flow.flow, flow.event];
     const result = await this.pool.query(query, values);
     return result.rows[0];
   }
 
   async getFlowById(id: string): Promise<Flow | null> {
-    const query = 'SELECT id, name, description, flow FROM flows WHERE id = $1';
+    const query = 'SELECT id, name, description, flow, event FROM flows WHERE id = $1';
     const result = await this.pool.query(query, [id]);
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
   async getAllFlows(): Promise<Flow[]> {
-    const query = 'SELECT id, name, description, flow FROM flows ORDER BY created_at DESC';
+    const query = 'SELECT id, name, description, flow, event FROM flows ORDER BY created_at DESC';
     const result = await this.pool.query(query);
     return result.rows;
   }
@@ -81,6 +82,10 @@ export class PostgresDatabase implements IDatabase {
       fields.push(`flow = $${paramCount++}`);
       values.push(flow.flow);
     }
+    if (flow.event !== undefined) {
+      fields.push(`event = $${paramCount++}`);
+      values.push(flow.event);
+    }
 
     if (fields.length === 0) {
       return this.getFlowById(id);
@@ -93,7 +98,7 @@ export class PostgresDatabase implements IDatabase {
       UPDATE flows
       SET ${fields.join(', ')}
       WHERE id = $${paramCount}
-      RETURNING id, name, description, flow;
+      RETURNING id, name, description, flow, event;
     `;
 
     const result = await this.pool.query(query, values);

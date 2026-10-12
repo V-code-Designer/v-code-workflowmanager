@@ -3,4 +3,5 @@ export interface Flow {
     name: string;
     description: string;
     flow: string;
+    event: string;
 }

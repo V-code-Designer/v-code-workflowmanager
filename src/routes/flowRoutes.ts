@@ -28,11 +28,15 @@ export function createFlowRouter(database: IDatabase): Router {
    *         flow:
    *           type: string
    *           description: Flow definition (JSON string)
+   *         event:
+   *           type: string
+   *           description: Event trigger for the flow
    *       example:
    *         id: "550e8400-e29b-41d4-a716-446655440000"
    *         name: "Sample Flow"
    *         description: "A sample workflow"
    *         flow: "{\"steps\": []}"
+   *         event: "onSave"
    *     FlowInput:
    *       type: object
    *       required:
@@ -44,6 +48,8 @@ export function createFlowRouter(database: IDatabase): Router {
    *         description:
    *           type: string
    *         flow:
+   *           type: string
+   *         event:
    *           type: string
    *     Error:
    *       type: object
@@ -82,14 +88,14 @@ export function createFlowRouter(database: IDatabase): Router {
    */
   router.post('/', async (req: Request, res: Response) => {
     try {
-      const { name, description, flow } = req.body;
+      const { name, description, flow, event } = req.body;
 
       if (!name || !flow) {
         res.status(400).json({ error: 'Name and flow are required' });
         return;
       }
 
-      const newFlow = await database.createFlow({ name, description, flow });
+      const newFlow = await database.createFlow({ name, description, flow, event });
       res.status(201).json(newFlow);
     } catch (error) {
       console.error('Error creating flow:', error);
@@ -194,6 +200,8 @@ export function createFlowRouter(database: IDatabase): Router {
    *               description:
    *                 type: string
    *               flow:
+   *                 type: string
+   *               event:
    *                 type: string
    *     responses:
    *       200:
