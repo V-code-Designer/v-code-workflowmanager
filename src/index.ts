@@ -4,6 +4,8 @@ import { DatabaseFactory, DatabaseType } from './database/DatabaseFactory';
 import { IDatabase } from './database/IDatabase';
 import { createFlowRouter } from './routes/flowRoutes';
 import { createTaskRouter } from './routes/taskRoutes';
+import { createFlowInstanceRouter } from './routes/flowInstanceRoutes';
+import { createTaskInstanceRouter } from './routes/taskInstanceRoutes';
 import { setupSwagger } from './swagger';
 
 dotenv.config();
@@ -28,12 +30,16 @@ async function startServer() {
         endpoints: {
           flows: '/api/flows',
           tasks: '/api/tasks',
+          flowInstances: '/api/flow-instances',
+          taskInstances: '/api/task-instances',
         },
       });
     });
 
     app.use('/api/flows', createFlowRouter(database));
     app.use('/api/tasks', createTaskRouter(database));
+    app.use('/api/flow-instances', createFlowInstanceRouter(database));
+    app.use('/api/task-instances', createTaskInstanceRouter(database));
 
     setupSwagger(app);
 
