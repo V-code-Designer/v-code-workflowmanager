@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { DatabaseFactory, DatabaseType } from './database/DatabaseFactory';
 import { IDatabase } from './database/IDatabase';
 import { createFlowRouter } from './routes/flowRoutes';
+import { createTaskRouter } from './routes/taskRoutes';
 import { setupSwagger } from './swagger';
 
 dotenv.config();
@@ -26,11 +27,13 @@ async function startServer() {
         documentation: '/api-docs',
         endpoints: {
           flows: '/api/flows',
+          tasks: '/api/tasks',
         },
       });
     });
 
     app.use('/api/flows', createFlowRouter(database));
+    app.use('/api/tasks', createTaskRouter(database));
 
     setupSwagger(app);
 

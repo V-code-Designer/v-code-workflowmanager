@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { IDatabase } from './IDatabase';
 import { Flow } from '../model/flow';
+import { Task } from '../model/task';
 
 export class PostgresDatabase implements IDatabase {
   private pool: Pool;
@@ -28,7 +29,7 @@ export class PostgresDatabase implements IDatabase {
   }
 
   private async initializeTable(): Promise<void> {
-    const query = `
+    const flowsQuery = `
       CREATE TABLE IF NOT EXISTS flows (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
@@ -39,7 +40,23 @@ export class PostgresDatabase implements IDatabase {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
-    await this.pool.query(query);
+    await this.pool.query(flowsQuery);
+
+    const tasksQuery = `
+      CREATE TABLE IF NOT EXISTS tasks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NOT NULL,
+        image VARCHAR(255),
+        namespace VARCHAR(255),
+        input_schema TEXT,
+        output_schema TEXT,
+        property_schema TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await this.pool.query(tasksQuery);
   }
 
   async createFlow(flow: Omit<Flow, 'id'>): Promise<Flow> {
@@ -107,6 +124,115 @@ export class PostgresDatabase implements IDatabase {
 
   async deleteFlow(id: string): Promise<boolean> {
     const query = 'DELETE FROM flows WHERE id = $1 RETURNING id';
+    const result = await this.pool.query(query, [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async createTask(task: Omit<Task, 'id'>): Promise<Task> {
+    const query = `
+      INSERT INTO tasks (name, category, image, namespace, input_schema, output_schema, property_schema)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, name, category, image, namespace,
+                input_schema as "inputSchema",
+                output_schema as "outputSchema",
+                property_schema as "propertyScehema";
+    `;
+    const values = [
+      task.name,
+      task.category,
+      task.image,
+      task.namespace,
+      task.inputSchema,
+      task.outputSchema,
+      task.propertyScehema
+    ];
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
+  }
+
+  async getTaskById(id: string): Promise<Task | null> {
+    const query = `
+      SELECT id, name, category, image, namespace,
+             input_schema as "inputSchema",
+             output_schema as "outputSchema",
+             property_schema as "propertyScehema"
+      FROM tasks
+      WHERE id = $1
+    `;
+    const result = await this.pool.query(query, [id]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
+  async getAllTasks(): Promise<Task[]> {
+    const query = `
+      SELECT id, name, category, image, namespace,
+             input_schema as "inputSchema",
+             output_schema as "outputSchema",
+             property_schema as "propertyScehema"
+      FROM tasks
+      ORDER BY created_at DESC
+    `;
+    const result = await this.pool.query(query);
+    return result.rows;
+  }
+
+  async updateTask(id: string, task: Partial<Omit<Task, 'id'>>): Promise<Task | null> {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+
+    if (task.name !== undefined) {
+      fields.push(`name = $${paramCount++}`);
+      values.push(task.name);
+    }
+    if (task.category !== undefined) {
+      fields.push(`category = $${paramCount++}`);
+      values.push(task.category);
+    }
+    if (task.image !== undefined) {
+      fields.push(`image = $${paramCount++}`);
+      values.push(task.image);
+    }
+    if (task.namespace !== undefined) {
+      fields.push(`namespace = $${paramCount++}`);
+      values.push(task.namespace);
+    }
+    if (task.inputSchema !== undefined) {
+      fields.push(`input_schema = $${paramCount++}`);
+      values.push(task.inputSchema);
+    }
+    if (task.outputSchema !== undefined) {
+      fields.push(`output_schema = $${paramCount++}`);
+      values.push(task.outputSchema);
+    }
+    if (task.propertyScehema !== undefined) {
+      fields.push(`property_schema = $${paramCount++}`);
+      values.push(task.propertyScehema);
+    }
+
+    if (fields.length === 0) {
+      return this.getTaskById(id);
+    }
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    const query = `
+      UPDATE tasks
+      SET ${fields.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING id, name, category, image, namespace,
+                input_schema as "inputSchema",
+                output_schema as "outputSchema",
+                property_schema as "propertyScehema";
+    `;
+
+    const result = await this.pool.query(query, values);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
+  async deleteTask(id: string): Promise<boolean> {
+    const query = 'DELETE FROM tasks WHERE id = $1 RETURNING id';
     const result = await this.pool.query(query, [id]);
     return result.rowCount !== null && result.rowCount > 0;
   }
