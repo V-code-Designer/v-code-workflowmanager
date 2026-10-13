@@ -26,6 +26,7 @@
     "docker:restart": "docker-compose restart app"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^18.0.6",
     "express": "^5.2.1",
     "pg": "^8.23.1",
@@ -33,6 +34,7 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^20.19.43",
     "@types/pg": "^8.23.1",
