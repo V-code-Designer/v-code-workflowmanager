@@ -131,6 +131,7 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
    *     parameters:
    *       - in: query
    *         name: flowInstanceId
+   *         required: false  
    *         schema:
    *           type: string
    *           format: uuid

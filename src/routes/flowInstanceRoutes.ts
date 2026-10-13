@@ -126,10 +126,11 @@ export function createFlowInstanceRouter(database: IDatabase): Router {
    *     parameters:
    *       - in: query
    *         name: flowId
+   *         required: false
    *         schema:
    *           type: string
    *           format: uuid
-   *         description: Filter by flow ID
+   *         description: Optional filter by flow ID
    *     responses:
    *       200:
    *         description: List of all flow instances
