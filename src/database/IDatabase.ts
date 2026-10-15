@@ -10,6 +10,7 @@ export interface IDatabase {
   createFlow(flow: Omit<Flow, 'id'>): Promise<Flow>;
   getFlowById(id: string): Promise<Flow | null>;
   getAllFlows(): Promise<Flow[]>;
+  getFlowsByEventMode(mode: string): Promise<Flow[]>;
   updateFlow(id: string, flow: Partial<Omit<Flow, 'id'>>): Promise<Flow | null>;
   deleteFlow(id: string): Promise<boolean>;
 

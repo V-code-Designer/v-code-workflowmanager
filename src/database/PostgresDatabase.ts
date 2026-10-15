@@ -37,12 +37,17 @@ export class PostgresDatabase implements IDatabase {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         flow TEXT NOT NULL,
-        event VARCHAR(255),
+        event JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
     await this.pool.query(flowsQuery);
+
+    await this.pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_flows_event_mode
+      ON flows ((event->>'mode'));
+    `);
 
     const tasksQuery = `
       CREATE TABLE IF NOT EXISTS tasks (
@@ -94,21 +99,66 @@ export class PostgresDatabase implements IDatabase {
       VALUES ($1, $2, $3, $4)
       RETURNING id, name, description, flow, event;
     `;
-    const values = [flow.name, flow.description, flow.flow, flow.event];
+    const eventValue = typeof flow.event === 'string' ? flow.event : JSON.stringify(flow.event);
+    const values = [flow.name, flow.description, flow.flow, eventValue];
     const result = await this.pool.query(query, values);
-    return result.rows[0];
+    const row = result.rows[0];
+    return {
+      ...row,
+      event: typeof row.event === 'string' ? JSON.parse(row.event) : row.event
+    };
   }
 
   async getFlowById(id: string): Promise<Flow | null> {
     const query = 'SELECT id, name, description, flow, event FROM flows WHERE id = $1';
     const result = await this.pool.query(query, [id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0];
+    return {
+      ...row,
+      event: typeof row.event === 'string' ? JSON.parse(row.event) : row.event
+    };
   }
 
   async getAllFlows(): Promise<Flow[]> {
     const query = 'SELECT id, name, description, flow, event FROM flows ORDER BY created_at DESC';
     const result = await this.pool.query(query);
-    return result.rows;
+    return result.rows.map(row => ({
+      ...row,
+      event: typeof row.event === 'string' ? JSON.parse(row.event) : row.event
+    }));
+  }
+
+  async getFlowsByEventMode(mode: string): Promise<Flow[]> {
+    let query: string;
+
+    if (mode === '') {
+      // If mode is empty string, find flows where event mode is empty, null, or not set
+      query = `
+        SELECT id, name, description, flow, event
+        FROM flows
+        WHERE event->>'mode' = '' OR event->>'mode' IS NULL OR event IS NULL
+        ORDER BY created_at DESC
+      `;
+      const result = await this.pool.query(query);
+      return result.rows.map(row => ({
+        ...row,
+        event: typeof row.event === 'string' ? JSON.parse(row.event) : row.event
+      }));
+    } else {
+      // If mode is specified, filter by that mode
+      query = `
+        SELECT id, name, description, flow, event
+        FROM flows
+        WHERE event->>'mode' = $1
+        ORDER BY created_at DESC
+      `;
+      const result = await this.pool.query(query, [mode]);
+      return result.rows.map(row => ({
+        ...row,
+        event: typeof row.event === 'string' ? JSON.parse(row.event) : row.event
+      }));
+    }
   }
 
   async updateFlow(id: string, flow: Partial<Omit<Flow, 'id'>>): Promise<Flow | null> {
@@ -129,8 +179,9 @@ export class PostgresDatabase implements IDatabase {
       values.push(flow.flow);
     }
     if (flow.event !== undefined) {
+      const eventValue = typeof flow.event === 'string' ? flow.event : JSON.stringify(flow.event);
       fields.push(`event = $${paramCount++}`);
-      values.push(flow.event);
+      values.push(eventValue);
     }
 
     if (fields.length === 0) {
@@ -148,7 +199,12 @@ export class PostgresDatabase implements IDatabase {
     `;
 
     const result = await this.pool.query(query, values);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0];
+    return {
+      ...row,
+      event: typeof row.event === 'string' ? JSON.parse(row.event) : row.event
+    };
   }
 
   async deleteFlow(id: string): Promise<boolean> {

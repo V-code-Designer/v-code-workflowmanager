@@ -9,6 +9,22 @@ export function createFlowRouter(database: IDatabase): Router {
    * @swagger
    * components:
    *   schemas:
+   *     EventMetadata:
+   *       type: object
+   *       properties:
+   *         mode:
+   *           type: string
+   *           description: Event mode (e.g., webhook, scheduled, manual)
+   *         command:
+   *           type: string
+   *           description: Optional command to execute
+   *         option:
+   *           type: string
+   *           description: Optional additional options
+   *       example:
+   *         mode: "webhook"
+   *         command: "/api/trigger"
+   *         option: "async"
    *     Flow:
    *       type: object
    *       required:
@@ -29,14 +45,19 @@ export function createFlowRouter(database: IDatabase): Router {
    *           type: string
    *           description: Flow definition (JSON string)
    *         event:
-   *           type: string
-   *           description: Event trigger for the flow
+   *           oneOf:
+   *             - type: string
+   *             - $ref: '#/components/schemas/EventMetadata'
+   *           description: Event trigger metadata for the flow
    *       example:
    *         id: "550e8400-e29b-41d4-a716-446655440000"
    *         name: "Sample Flow"
    *         description: "A sample workflow"
    *         flow: "{\"steps\": []}"
-   *         event: "onSave"
+   *         event:
+   *           mode: "webhook"
+   *           command: ""
+   *           option: ""
    *     FlowInput:
    *       type: object
    *       required:
@@ -50,7 +71,9 @@ export function createFlowRouter(database: IDatabase): Router {
    *         flow:
    *           type: string
    *         event:
-   *           type: string
+   *           oneOf:
+   *             - type: string
+   *             - $ref: '#/components/schemas/EventMetadata'
    *     Error:
    *       type: object
    *       properties:
@@ -107,11 +130,17 @@ export function createFlowRouter(database: IDatabase): Router {
    * @swagger
    * /api/flows:
    *   get:
-   *     summary: Get all flows
+   *     summary: Get all flows or filter by event mode
    *     tags: [Flows]
+   *     parameters:
+   *       - in: query
+   *         name: mode
+   *         schema:
+   *           type: string
+   *         description: Filter flows by event.mode (e.g., webhook, scheduled, manual). Use empty string to find flows with no mode set.
    *     responses:
    *       200:
-   *         description: List of all flows
+   *         description: List of flows
    *         content:
    *           application/json:
    *             schema:
@@ -123,8 +152,15 @@ export function createFlowRouter(database: IDatabase): Router {
    */
   router.get('/', async (req: Request, res: Response) => {
     try {
-      const flows = await database.getAllFlows();
-      res.json(flows);
+      const mode = req.query.mode as string;
+
+      if (mode !== undefined) {
+        const flows = await database.getFlowsByEventMode(mode);
+        res.json(flows);
+      } else {
+        const flows = await database.getAllFlows();
+        res.json(flows);
+      }
     } catch (error) {
       console.error('Error fetching flows:', error);
       res.status(500).json({ error: 'Failed to fetch flows' });
