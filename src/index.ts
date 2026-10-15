@@ -9,13 +9,24 @@ import { createFlowInstanceRouter } from './routes/flowInstanceRoutes';
 import { createTaskInstanceRouter } from './routes/taskInstanceRoutes';
 import { setupSwagger } from './swagger';
 import { DataLoader } from './services/dataLoader';
+import cors from "cors";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+
+const devUIHostFlag = process.env.devUIHostFlag;
+
+if(devUIHostFlag) {
+  app.use(cors({
+  origin: "http://localhost:5173", // Frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}));
+}
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
