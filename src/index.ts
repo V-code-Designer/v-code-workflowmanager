@@ -8,7 +8,7 @@ import { createFlowInstanceRouter } from './routes/flowInstanceRoutes';
 import { createTaskInstanceRouter } from './routes/taskInstanceRoutes';
 import { setupSwagger } from './swagger';
 import { DataLoader } from './services/dataLoader';
-import { KafkaService } from './services/kafkaService';
+import { EventStoreFactory, EventStoreType, IEventStore } from './eventstore';
 import cors from "cors";
 
 dotenv.config();
@@ -32,7 +32,9 @@ app.use(express.urlencoded({ extended: true }));
 
 const dbType = (process.env.DATABASE_TYPE as DatabaseType) || 'postgres';
 const database: IDatabase = DatabaseFactory.createDatabase(dbType);
-const kafkaService = new KafkaService();
+
+const eventStoreType = (process.env.EVENT_STORE_TYPE as EventStoreType) || 'kafka';
+const eventStore: IEventStore = EventStoreFactory.createEventStore(eventStoreType);
 
 async function startServer() {
   try {
@@ -41,12 +43,12 @@ async function startServer() {
     const dataLoader = new DataLoader(database);
     await dataLoader.loadInitialData();
 
-    // Initialize Kafka
-    await kafkaService.connect();
-    await kafkaService.createTopic('flow.start');
+    // Initialize Event Store
+    await eventStore.connect();
+    await eventStore.createTopic('flow.start');
 
     // Subscribe to flow.start topic
-    await kafkaService.subscribe('flow.start', async (message) => {
+    await eventStore.subscribe('flow.start', async (message) => {
       console.log('Received flow.start message:', message);
       // Handle the message here - you can add your business logic
     });
@@ -77,7 +79,7 @@ async function startServer() {
           return;
         }
 
-        await kafkaService.publish('flow.start', {
+        await eventStore.publish('flow.start', {
           ...flowData,
           timestamp: new Date().toISOString(),
           eventId: `flow-${Date.now()}-${Math.random().toString(36).substring(7)}`
@@ -111,14 +113,14 @@ async function startServer() {
 
     process.on('SIGINT', async () => {
       console.log('\nShutting down gracefully...');
-      await kafkaService.disconnect();
+      await eventStore.disconnect();
       await database.disconnect();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
       console.log('\nShutting down gracefully...');
-      await kafkaService.disconnect();
+      await eventStore.disconnect();
       await database.disconnect();
       process.exit(0);
     });
