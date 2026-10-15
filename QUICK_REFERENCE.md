@@ -19,6 +19,7 @@
 | GET | `/api/flows/{id}` | Get flow by ID |
 | PUT | `/api/flows/{id}` | Update flow |
 | DELETE | `/api/flows/{id}` | Delete flow |
+| POST | `/api/startflow` | Start flow execution |
 
 ## Quick Commands
 
@@ -59,6 +60,13 @@ curl -X PUT http://localhost:3000/api/flows/{id} \
 ### Delete Flow
 ```bash
 curl -X DELETE http://localhost:3000/api/flows/{id}
+```
+
+### Start Flow
+```bash
+curl -X POST http://localhost:3000/api/startflow \
+  -H "Content-Type: application/json" \
+  -d '{"flowId":"{id}","inputData":{"key":"value"},"metadata":{"source":"api"}}'
 ```
 
 ## Event Mode Examples

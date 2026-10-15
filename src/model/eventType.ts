@@ -1,5 +1,5 @@
 export enum EventType {
-    WEBHOOK = "WEBHOOK",
-    VERACODE_CLI = "VERACODE_CLI",
-    KAFKA = "KAFKA"
+    WEBHOOK = "webhook",
+    VERACODE_CLI = "veracode_cli",
+    KAFKA = "kafka"
 }

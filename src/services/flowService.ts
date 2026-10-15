@@ -1,37 +1,52 @@
+import { IDatabase } from "../database/IDatabase";
+import { IEventStore } from "../eventstore/IEventStore";
 import { EventType } from "../model/eventType";
+import { FlowStatus } from "../model/flowStatus";
 
 export class FlowService {
-    async startFlow(event : EventType, inputData: any): Promise<void> {
+    static async startFlow(eventStore: IEventStore, database: IDatabase, message: any): Promise<void> {
+        const event = message.event as EventType;
         try {
             console.log("Starting flow");
+            // Create flow instance db
+             const instance = await database.createFlowInstance({
+                flowId: message.flowId,
+                status: FlowStatus.IN_PROGRESS,
+                inputData: JSON.stringify(message.inputData),
+                outputData: "",
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+            let eventPayload = {
+                flowId: message.flowId,
+                inputData: message.inputData,
+                arrayType: message.arrayType,
+                namespace: "com.veracode.start",
+                instanceId: instance.id
+            };
+            await eventStore.publish('task.start', eventPayload);
 
-            if(event === EventType.WEBHOOK) {
-                
-                console.log("Starting flow for WEBHOOK event");
-                // Add logic to start the flow for WEBHOOK event here
-            } else if(event === EventType.VERACODE_CLI) {
-                console.log("Starting flow for VERACODE_CLI event");
-                // Add logic to start the flow for VERACODE_CLI event here
-            } else if(event === EventType.KAFKA) {
-                console.log("Starting flow for KAFKA event");
-                // Add logic to start the flow for KAFKA event here
-            } else {
-                throw new Error(`Unsupported event type: ${event}`);
-            }
-            // Add logic to start the flow here
         } catch (error) {
             console.error("Failed to start flow:", error);
             throw error;
         }
     }
 
-    async stopFlow(flowId: string): Promise<void> {
+    static async endFlow(flowId: string, outputData?: any): Promise<void> {
         try {
-            console.log(`Stopping flow with ID: ${flowId}`);
-            // Add logic to stop the flow here
+            console.log(`Ending flow with ID: ${flowId}`);
+            if (outputData) {
+                console.log(`Flow output data:`, outputData);
+            }
+            // Add logic to end/complete the flow here
+            // - Update flow instance status to COMPLETED
+            // - Store output data
+            // - Cleanup resources
         } catch (error) {
-            console.error(`Failed to stop flow with ID "${flowId}":`, error);
+            console.error(`Failed to end flow with ID "${flowId}":`, error);
             throw error;
         }
     }
+
+
 }

@@ -47,9 +47,10 @@ The `event` field in Flow contains structured JSON metadata:
 
 ## API Endpoints
 
-### Base URL
+### Base URLs
 ```
-http://localhost:3000/api/flows
+Flows CRUD: http://localhost:3000/api/flows
+Flow Execution: http://localhost:3000/api/startflow
 ```
 
 ### 1. Create Flow
@@ -212,6 +213,51 @@ Delete a flow by ID.
   "message": "Flow deleted successfully"
 }
 ```
+
+### 7. Start Flow Execution
+
+**POST** `/api/startflow`
+
+Trigger flow execution by publishing a flow start event to the event store.
+
+**Request Body:**
+```json
+{
+  "flowId": "550e8400-e29b-41d4-a716-446655440000",
+  "inputData": {
+    "orderId": "ORD-12345",
+    "customerId": "CUST-67890"
+  },
+  "metadata": {
+    "source": "webhook",
+    "priority": "high"
+  }
+}
+```
+
+**Response:** `202 Accepted`
+```json
+{
+  "message": "Flow start event published successfully",
+  "topic": "flow.start",
+  "eventId": "flow-1697123456789-abc123",
+  "timestamp": "2026-10-15T12:00:00.000Z",
+  "data": {
+    "flowId": "550e8400-e29b-41d4-a716-446655440000",
+    "flowName": "Order Processing Flow",
+    "inputData": {
+      "orderId": "ORD-12345"
+    },
+    "metadata": {
+      "source": "webhook"
+    }
+  }
+}
+```
+
+**Note**: Returns 202 (Accepted) because flow execution is asynchronous.
+
+See [STARTFLOW_API.md](STARTFLOW_API.md) for detailed documentation.
 
 ## cURL Examples
 

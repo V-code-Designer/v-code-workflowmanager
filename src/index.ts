@@ -6,10 +6,12 @@ import { createFlowRouter } from './routes/flowRoutes';
 import { createTaskRouter } from './routes/taskRoutes';
 import { createFlowInstanceRouter } from './routes/flowInstanceRoutes';
 import { createTaskInstanceRouter } from './routes/taskInstanceRoutes';
+import { createStartFlowRouter } from './routes/startFlowRoutes';
 import { setupSwagger } from './swagger';
 import { DataLoader } from './services/dataLoader';
 import { EventStoreFactory, EventStoreType, IEventStore } from './eventstore';
 import cors from "cors";
+import { FlowService } from './services/flowService';
 
 dotenv.config();
 
@@ -49,9 +51,10 @@ async function startServer() {
 
     // Subscribe to flow.start topic
     await eventStore.subscribe('flow.start', async (message) => {
-      console.log('Received flow.start message:', message);
-      // Handle the message here - you can add your business logic
+      console.log('Received flow.start event:', message);
+      FlowService.startFlow(eventStore, database, message);
     });
+   
 
     app.get('/', (_req: Request, res: Response) => {
       res.json({
@@ -67,42 +70,11 @@ async function startServer() {
       });
     });
 
-    app.post('/api/startflow', async (req: Request, res: Response) => {
-      try {
-        const flowData = req.body;
-
-        if (!flowData || Object.keys(flowData).length === 0) {
-          res.status(400).json({
-            error: 'Bad Request',
-            message: 'Request body cannot be empty'
-          });
-          return;
-        }
-
-        await eventStore.publish('flow.start', {
-          ...flowData,
-          timestamp: new Date().toISOString(),
-          eventId: `flow-${Date.now()}-${Math.random().toString(36).substring(7)}`
-        });
-
-        res.status(202).json({
-          message: 'Flow start event published successfully',
-          topic: 'flow.start',
-          data: flowData
-        });
-      } catch (error) {
-        console.error('Error publishing to flow.start:', error);
-        res.status(500).json({
-          error: 'Internal Server Error',
-          message: 'Failed to publish flow start event'
-        });
-      }
-    });
-
     app.use('/api/flows', createFlowRouter(database));
     app.use('/api/tasks', createTaskRouter(database));
     app.use('/api/flow-instances', createFlowInstanceRouter(database));
     app.use('/api/task-instances', createTaskInstanceRouter(database));
+    app.use('/api/startflow', createStartFlowRouter(database, eventStore));
 
     setupSwagger(app);
 

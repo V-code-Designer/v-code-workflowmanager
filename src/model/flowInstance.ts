@@ -1,12 +1,13 @@
+import { FlowStatus } from "./flowStatus";
 import { TaskInstance } from "./taskInstance";
 
 export interface FlowInstance {
     id: string;
     flowId: string;
-    status: 'pending' | 'in_progress' | 'completed' | 'failed';
-    createdAt: Date;
+    status: FlowStatus;
+    createdAt?: Date;
     updatedAt: Date;
     inputData: string;
     outputData: string;
-    history: Array<TaskInstance>;
+    history?: Array<TaskInstance>;
 }
