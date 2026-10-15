@@ -22,7 +22,8 @@ export class FlowService {
                 inputData: message.inputData,
                 arrayType: message.arrayType,
                 namespace: "com.veracode.start",
-                instanceId: instance.id
+                instanceId: instance.id,
+                initialNodeId: message.initialNodeId
             };
             await eventStore.publish('task.start', eventPayload);
 

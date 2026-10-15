@@ -183,6 +183,7 @@ export function createStartFlowRouter(database: IDatabase, eventStore: IEventSto
           flowName: flow.name,
           inputData,
           arrayType,
+          initialNodeId : JSON.parse(flow.flow).nodes.find((ele: { name: string; }) => ele.name == 'Start').id,
           event,
           timestamp,
           eventId: `${eventId}-${flow.id}`

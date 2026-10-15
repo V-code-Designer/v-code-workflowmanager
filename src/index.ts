@@ -10,8 +10,8 @@ import { createStartFlowRouter } from './routes/startFlowRoutes';
 import { setupSwagger } from './swagger';
 import { DataLoader } from './services/dataLoader';
 import { EventStoreFactory, EventStoreType, IEventStore } from './eventstore';
+import { initializeEventStore, shutdownEventStore } from './eventstore/eventStoreSetup';
 import cors from "cors";
-import { FlowService } from './services/flowService';
 
 dotenv.config();
 
@@ -45,16 +45,8 @@ async function startServer() {
     const dataLoader = new DataLoader(database);
     await dataLoader.loadInitialData();
 
-    // Initialize Event Store
-    await eventStore.connect();
-    await eventStore.createTopic('flow.start');
-
-    // Subscribe to flow.start topic
-    await eventStore.subscribe('flow.start', async (message) => {
-      console.log('Received flow.start event:', message);
-      FlowService.startFlow(eventStore, database, message);
-    });
-   
+    // Initialize Event Store with all topics and subscriptions
+    await initializeEventStore(eventStore, database);
 
     app.get('/', (_req: Request, res: Response) => {
       res.json({
@@ -85,14 +77,14 @@ async function startServer() {
 
     process.on('SIGINT', async () => {
       console.log('\nShutting down gracefully...');
-      await eventStore.disconnect();
+      await shutdownEventStore(eventStore);
       await database.disconnect();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
       console.log('\nShutting down gracefully...');
-      await eventStore.disconnect();
+      await shutdownEventStore(eventStore);
       await database.disconnect();
       process.exit(0);
     });
