@@ -52,10 +52,10 @@ export class PostgresDatabase implements IDatabase {
     const tasksQuery = `
       CREATE TABLE IF NOT EXISTS tasks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) UNIQUE,
         category VARCHAR(255) NOT NULL,
         image VARCHAR(255),
-        namespace VARCHAR(255),
+        namespace VARCHAR(255) UNIQUE,
         input_schema TEXT,
         output_schema TEXT,
         property_schema TEXT,
@@ -86,6 +86,7 @@ export class PostgresDatabase implements IDatabase {
         status VARCHAR(50) NOT NULL DEFAULT 'pending',
         input_data TEXT,
         output_data TEXT,
+        namespace VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -259,6 +260,34 @@ export class PostgresDatabase implements IDatabase {
     `;
     const result = await this.pool.query(query);
     return result.rows;
+  }
+
+  async getTaskByCategoryNamespace(category: string, namespace: string): Promise<Task | null> {
+    const query = `
+      SELECT id, name, category, image, namespace,
+             input_schema as "inputSchema",
+             output_schema as "outputSchema",
+             property_schema as "propertyScehema"
+      FROM tasks
+      WHERE category = $1 AND namespace = $2
+      LIMIT 1
+    `;
+    const result = await this.pool.query(query, [category, namespace]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
+  async getTaskByNamespace(taskNamespace: string): Promise<Task | null> {
+    const query = `
+      SELECT id, name, category, image, namespace,
+             input_schema as "inputSchema",
+             output_schema as "outputSchema",
+             property_schema as "propertyScehema"
+      FROM tasks
+      WHERE namespace = $1
+      LIMIT 1
+    `;
+    const result = await this.pool.query(query, [taskNamespace]);
+    return result.rows.length > 0 ? result.rows[0] : null;
   }
 
   async updateTask(id: string, task: Partial<Omit<Task, 'id'>>): Promise<Task | null> {
@@ -472,14 +501,15 @@ export class PostgresDatabase implements IDatabase {
 
   async createTaskInstance(taskInstance: Omit<TaskInstance, 'id'>): Promise<TaskInstance> {
     const query = `
-      INSERT INTO task_instances (task_id, flow_instance_id, status, input_data, output_data, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO task_instances (task_id, flow_instance_id, status, input_data, output_data, namespace, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id,
                 task_id as "taskId",
                 flow_instance_id as "flowInstanceId",
                 status,
                 input_data as "inputData",
                 output_data as "outputData",
+                namespace,
                 created_at as "createdAt",
                 updated_at as "updatedAt";
     `;
@@ -489,6 +519,7 @@ export class PostgresDatabase implements IDatabase {
       taskInstance.status,
       taskInstance.inputData,
       taskInstance.outputData,
+      taskInstance.namespace || null,
       taskInstance.createdAt,
       taskInstance.updatedAt
     ];
@@ -504,6 +535,7 @@ export class PostgresDatabase implements IDatabase {
              status,
              input_data as "inputData",
              output_data as "outputData",
+             namespace,
              created_at as "createdAt",
              updated_at as "updatedAt"
       FROM task_instances
@@ -521,6 +553,7 @@ export class PostgresDatabase implements IDatabase {
              status,
              input_data as "inputData",
              output_data as "outputData",
+             namespace,
              created_at as "createdAt",
              updated_at as "updatedAt"
       FROM task_instances
@@ -538,6 +571,7 @@ export class PostgresDatabase implements IDatabase {
              status,
              input_data as "inputData",
              output_data as "outputData",
+             namespace,
              created_at as "createdAt",
              updated_at as "updatedAt"
       FROM task_instances
@@ -565,6 +599,10 @@ export class PostgresDatabase implements IDatabase {
       fields.push(`output_data = $${paramCount++}`);
       values.push(taskInstance.outputData);
     }
+    if (taskInstance.namespace !== undefined) {
+      fields.push(`namespace = $${paramCount++}`);
+      values.push(taskInstance.namespace);
+    }
 
     if (fields.length === 0) {
       return this.getTaskInstanceById(id);
@@ -583,6 +621,7 @@ export class PostgresDatabase implements IDatabase {
                 status,
                 input_data as "inputData",
                 output_data as "outputData",
+                namespace,
                 created_at as "createdAt",
                 updated_at as "updatedAt";
     `;

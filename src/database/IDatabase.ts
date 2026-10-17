@@ -6,19 +6,21 @@ import { TaskInstance } from '../model/taskInstance';
 export interface IDatabase {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
-
+  
   createFlow(flow: Omit<Flow, 'id'>): Promise<Flow>;
   getFlowById(id: string): Promise<Flow | null>;
   getAllFlows(): Promise<Flow[]>;
   getFlowsByEventMode(mode: string): Promise<Flow[]>;
   updateFlow(id: string, flow: Partial<Omit<Flow, 'id'>>): Promise<Flow | null>;
   deleteFlow(id: string): Promise<boolean>;
-
+  
   createTask(task: Omit<Task, 'id'>): Promise<Task>;
   getTaskById(id: string): Promise<Task | null>;
   getAllTasks(): Promise<Task[]>;
   updateTask(id: string, task: Partial<Omit<Task, 'id'>>): Promise<Task | null>;
   deleteTask(id: string): Promise<boolean>;
+  getTaskByNamespace(taskNamespace: string):  Promise<Task | null>;
+  getTaskByCategoryNamespace(category: string, namespace: string): Promise<Task | null>;
 
   createFlowInstance(flowInstance: Omit<FlowInstance, 'id'>): Promise<FlowInstance>;
   getFlowInstanceById(id: string): Promise<FlowInstance | null>;

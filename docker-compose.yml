@@ -1,33 +1,33 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      PORT: 3000
-      DATABASE_TYPE: postgres
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/flowmanager
-      KAFKA_BROKERS: kafka:9092
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    networks:
-      - app-network
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     PORT: 3000
+  #     DATABASE_TYPE: postgres
+  #     DATABASE_URL: postgresql://postgres:postgres@postgres:5432/flowmanager
+  #     KAFKA_BROKERS: kafka:9092
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   networks:
+  #     - app-network
 
-  registry:
-    image: verdaccio/verdaccio:6
-    restart: unless-stopped
-    ports:
-      - "4873:4873"
-    volumes:
-      - verdaccio-storage:/verdaccio/storage
-    networks:
-      - app-network
+  # registry:
+  #   image: verdaccio/verdaccio:6
+  #   restart: unless-stopped
+  #   ports:
+  #     - "4873:4873"
+  #   volumes:
+  #     - verdaccio-storage:/verdaccio/storage
+  #   networks:
+  #     - app-network
 
   postgres:
     image: postgres:16-alpine

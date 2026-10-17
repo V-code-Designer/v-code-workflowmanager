@@ -113,7 +113,29 @@ async function setupSubscriptions(
     console.log('Received task.start event:', message);
     try {
       // Create task instance
-  
+      // Check if task data is available in the database by category and namespace
+      const task = await database.getTaskByNamespace(message.namespace);
+      if (!task) {
+        throw new Error(`Task not found for namespace: ${message.namespace}`);
+      }
+
+      const taskInstance = await database.createTaskInstance({
+        taskId: task.id,
+        flowInstanceId: message.instanceId,
+        inputData: JSON.stringify(message.inputData),
+        status: 'pending',
+        namespace: task.namespace,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        outputData: ''
+      });
+
+      console.log('Task instance created:', taskInstance);
+      await publishEvent(eventStore, message.namespace, {
+        taskInstanceId: taskInstance.id,
+        flowInstanceId: message.flowInstanceId,
+        inputData: message.inputData
+      });
     } catch (error) {
       console.error('Error processing task.start event:', error);
       await publishErrorEvent(eventStore, EVENT_TOPICS.TASK_ERROR, message, error);

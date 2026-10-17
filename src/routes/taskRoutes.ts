@@ -112,7 +112,11 @@ export function createTaskRouter(database: IDatabase): Router {
         res.status(400).json({ error: 'Name and category are required' });
         return;
       }
-
+      const existingTask = await database.getTaskByCategoryNamespace(category, namespace);
+      if (existingTask) {
+        res.status(400).json({ error: 'Task with the same category and namespace already exists' });
+        return;
+      }
       const newTask = await database.createTask({ name, category, image, namespace, inputSchema, outputSchema, propertyScehema });
       res.status(201).json(newTask);
     } catch (error) {

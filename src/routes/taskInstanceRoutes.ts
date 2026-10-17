@@ -45,6 +45,9 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
    *         outputData:
    *           type: string
    *           description: Output data (JSON string)
+   *         namespace:
+   *           type: string
+   *           description: Optional namespace for task categorization
    *       example:
    *         id: "550e8400-e29b-41d4-a716-446655440000"
    *         taskId: "660e8400-e29b-41d4-a716-446655440001"
@@ -52,6 +55,7 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
    *         flowInstanceId: "770e8400-e29b-41d4-a716-446655440002"
    *         inputData: "{\"param\": \"value\"}"
    *         outputData: "{\"result\": \"success\"}"
+   *         namespace: "com.example.task"
    *     TaskInstanceInput:
    *       type: object
    *       required:
@@ -71,6 +75,9 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
    *           type: string
    *         outputData:
    *           type: string
+   *         namespace:
+   *           type: string
+   *           description: Optional namespace for task categorization
    */
 
   /**
@@ -99,7 +106,7 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
    */
   router.post('/', async (req: Request, res: Response) => {
     try {
-      const { taskId, flowInstanceId, status, inputData, outputData } = req.body;
+      const { taskId, flowInstanceId, status, inputData, outputData, namespace } = req.body;
 
       if (!taskId || !flowInstanceId) {
         res.status(400).json({ error: 'taskId and flowInstanceId are required' });
@@ -112,6 +119,7 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
         status: status || 'pending',
         inputData,
         outputData,
+        namespace,
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -236,6 +244,9 @@ export function createTaskInstanceRouter(database: IDatabase): Router {
    *                 type: string
    *               outputData:
    *                 type: string
+   *               namespace:
+   *                 type: string
+   *                 description: Optional namespace for task categorization
    *     responses:
    *       200:
    *         description: Task instance updated successfully

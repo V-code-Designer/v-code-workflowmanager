@@ -7,4 +7,5 @@ export interface TaskInstance {
     updatedAt: Date;
     inputData: string;
     outputData: string;
+    namespace?: string; // Optional namespace field
 }
