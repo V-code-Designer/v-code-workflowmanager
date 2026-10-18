@@ -1,6 +1,7 @@
 import { IEventStore } from './IEventStore';
 import { IDatabase } from '../database/IDatabase';
 import { FlowService } from '../services/flowService';
+import { Status } from '../model/status';
 
 /**
  * Event Store Topics Configuration
@@ -118,7 +119,6 @@ async function setupSubscriptions(
       if (!task) {
         throw new Error(`Task not found for namespace: ${message.namespace}`);
       }
-
       const taskInstance = await database.createTaskInstance({
         taskId: task.id,
         flowInstanceId: message.instanceId,
@@ -129,12 +129,31 @@ async function setupSubscriptions(
         updatedAt: new Date(),
         outputData: ''
       });
+   
 
-      console.log('Task instance created:', taskInstance);
+      console.log('Task instance created:', {...taskInstance, flowId: message.flowId});
+      //com.veracode.start publish event to task.start with taskInstanceId and flowInstanceId
+      // generate Id similar to postgres db 
+      
       await publishEvent(eventStore, message.namespace, {
-        taskInstanceId: taskInstance.id,
-        flowInstanceId: message.flowInstanceId,
-        inputData: message.inputData
+        model : {
+          created_at: new Date(),
+          completed_at: new Date(),
+          updated_at: new Date(),
+          status: Status.Started,
+          namespace: task.namespace,
+          flow_instance_id: message.instanceId,
+          task_id: task.id,
+          metadata: task,
+          flowId: message.flowId,
+          nodeId: message.initialNodeId
+        },
+        inputData : {
+          taskInstanceId: taskInstance.id,
+          flowInstanceId: message.flowInstanceId,
+          inputData: message.inputData,
+        }
+     
       });
     } catch (error) {
       console.error('Error processing task.start event:', error);

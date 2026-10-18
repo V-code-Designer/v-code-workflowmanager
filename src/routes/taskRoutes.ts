@@ -155,6 +155,48 @@ export function createTaskRouter(database: IDatabase): Router {
 
   /**
    * @swagger
+   * /api/tasks/namespace/{namespace}:
+   *   get:
+   *     summary: Get a task by namespace
+   *     tags: [Tasks]
+   *     parameters:
+   *       - in: path
+   *         name: namespace
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Task namespace
+   *     responses:
+   *       200:
+   *         description: Task found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Task'
+   *       404:
+   *         description: Task not found
+   *       500:
+   *         description: Server error
+   */
+  router.get('/namespace/:namespace', async (req: Request, res: Response) => {
+    try {
+      const namespace = req.params.namespace as string;
+      const task = await database.getTaskByNamespace(namespace);
+
+      if (!task) {
+        res.status(404).json({ error: 'Task not found' });
+        return;
+      }
+
+      res.json(task);
+    } catch (error) {
+      console.error('Error fetching task by namespace:', error);
+      res.status(500).json({ error: 'Failed to fetch task by namespace' });
+    }
+  });
+
+  /**
+   * @swagger
    * /api/tasks/{id}:
    *   get:
    *     summary: Get a task by ID
