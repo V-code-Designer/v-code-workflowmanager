@@ -146,13 +146,10 @@ async function setupSubscriptions(
           task_id: task.id,
           metadata: task,
           flowId: message.flowId,
-          nodeId: message.initialNodeId
-        },
-        inputData : {
+          nodeId: message.initialNodeId,
           taskInstanceId: taskInstance.id,
-          flowInstanceId: message.flowInstanceId,
-          inputData: message.inputData,
-        }
+        },
+        inputData : message.inputData,
      
       });
     } catch (error) {
