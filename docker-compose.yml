@@ -32,8 +32,10 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    # 5432 on the host is taken by a local PostgreSQL install; the
+    # app reaches this one as postgres:5432 over app-network.
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
