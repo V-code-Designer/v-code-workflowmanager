@@ -19,15 +19,15 @@ services:
   #   networks:
   #     - app-network
 
-  # registry:
-  #   image: verdaccio/verdaccio:6
-  #   restart: unless-stopped
-  #   ports:
-  #     - "4873:4873"
-  #   volumes:
-  #     - verdaccio-storage:/verdaccio/storage
-  #   networks:
-  #     - app-network
+  registry:
+    image: verdaccio/verdaccio:6
+    restart: unless-stopped
+    ports:
+      - "4873:4873"
+    volumes:
+      - verdaccio-storage:/verdaccio/storage
+    networks:
+      - app-network
 
   postgres:
     image: postgres:16-alpine
@@ -91,7 +91,7 @@ services:
       - app-network
 
 volumes:
-#  verdaccio-storage:
+  verdaccio-storage:
   postgres-data:
   zookeeper-data:
   zookeeper-logs:
