@@ -91,7 +91,7 @@ services:
       - app-network
 
 volumes:
-  verdaccio-storage:
+#  verdaccio-storage:
   postgres-data:
   zookeeper-data:
   zookeeper-logs:

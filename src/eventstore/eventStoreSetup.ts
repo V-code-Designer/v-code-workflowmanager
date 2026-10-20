@@ -2,6 +2,7 @@ import { IEventStore } from './IEventStore';
 import { IDatabase } from '../database/IDatabase';
 import { FlowService } from '../services/flowService';
 import { Status } from '../model/status';
+import { transformData } from '../util/ProcessMapping';
 
 /**
  * Event Store Topics Configuration
@@ -12,9 +13,7 @@ export const EVENT_TOPICS = {
   FLOW_ERROR: 'flow.error',
   TASK_START: 'task.start',
   TASK_END: 'task.end',
-  TASK_ERROR: 'task.error',
-  NOTIFICATION: 'notification',
-  AUDIT_LOG: 'audit.log',
+  TASK_ERROR: 'task.error'
 } as const;
 
 /**
@@ -176,7 +175,7 @@ async function setupSubscriptions(
     }
   });
   console.log(`  ✓ Subscribed to: ${EVENT_TOPICS.FLOW_ERROR}`);
-
+*/
   // Subscribe to task.end
   await eventStore.subscribe(EVENT_TOPICS.TASK_END, async (message) => {
     console.log('Received task.end event:', message);
@@ -187,6 +186,27 @@ async function setupSubscriptions(
         outputData: JSON.stringify(message.outputData),
         updatedAt: new Date()
       });
+      const flow = await database.getFlowById(message.model.flowId);
+      const edges = JSON.parse(flow!.flow).edges.filter((edge : any) => { return (edge.from == message.model.nodeId && edge.branch == message.status)});
+      for (let i = 0; i < edges.length; i++) {
+        let mappings = edges[i].mappings;
+        let data = message.result;
+        let nodeObj = JSON.parse(flow!.flow).nodes.find((node: any) => node.id == edges[i].to);
+        let schema = nodeObj.inputSchema;
+        let nameSpace = nodeObj.nameSpace;
+        let mappedData = transformData(data, schema, mappings);
+        let eventPayload = {
+                flowId: message.model.flowId,
+                inputData: mappedData,
+                arrayType: false,
+                namespace: nameSpace,
+                instanceId: message.model.flow_instance_id,
+                initialNodeId: edges[i].to
+            };
+            await eventStore.publish('task.start', eventPayload);
+
+        
+      }
     } catch (error) {
       console.error('Error processing task.end event:', error);
       await publishErrorEvent(eventStore, EVENT_TOPICS.TASK_ERROR, message, error);
@@ -211,7 +231,7 @@ async function setupSubscriptions(
     }
   });
   console.log(`  ✓ Subscribed to: ${EVENT_TOPICS.TASK_ERROR}`);
-
+  /*
   // Subscribe to notification
   await eventStore.subscribe(EVENT_TOPICS.NOTIFICATION, async (message) => {
     console.log('Received notification event:', message);
