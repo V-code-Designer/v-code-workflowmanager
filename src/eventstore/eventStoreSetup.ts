@@ -207,6 +207,11 @@ async function setupSubscriptions(
 
         
       }
+      if(message.model.namespace == 'com.veracode.stop'){
+    
+        await FlowService.endFlow(database, message);
+    
+      }
     } catch (error) {
       console.error('Error processing task.end event:', error);
       await publishErrorEvent(eventStore, EVENT_TOPICS.TASK_ERROR, message, error);

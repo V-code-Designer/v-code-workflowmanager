@@ -33,18 +33,17 @@ export class FlowService {
         }
     }
 
-    static async endFlow(flowId: string, outputData?: any): Promise<void> {
+    static async endFlow(database: IDatabase, message: any): Promise<void> {
         try {
-            console.log(`Ending flow with ID: ${flowId}`);
-            if (outputData) {
-                console.log(`Flow output data:`, outputData);
+            console.log(`Ending flow with ID: ${message.model.flow_instance_id}`);
+            if (message.result) {
+                console.log(`Flow output data:`, message.result);
+                database.updateFlowInstance(message.model.flow_instance_id, {status: FlowStatus.COMPLETED, outputData: message.result});
+
             }
-            // Add logic to end/complete the flow here
-            // - Update flow instance status to COMPLETED
-            // - Store output data
-            // - Cleanup resources
+            
         } catch (error) {
-            console.error(`Failed to end flow with ID "${flowId}":`, error);
+            console.error(`Failed to end flow with ID "${message.model.flow_instance_id}":`, error);
             throw error;
         }
     }
