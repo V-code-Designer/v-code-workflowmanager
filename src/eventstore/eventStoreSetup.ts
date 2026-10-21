@@ -3,6 +3,7 @@ import { IDatabase } from '../database/IDatabase';
 import { FlowService } from '../services/flowService';
 import { Status } from '../model/status';
 import { transformData } from '../util/ProcessMapping';
+import { errorOutputSchema } from '../util/errorOutputSchema';
 
 /**
  * Event Store Topics Configuration
@@ -181,7 +182,7 @@ async function setupSubscriptions(
     console.log('Received task.end event:', message);
     try {
       // Update task instance status to COMPLETED
-      await database.updateTaskInstance(message.taskInstanceId, {
+      await database.updateTaskInstance(message.model.taskInstanceId, {
         status: 'completed',
         outputData: JSON.stringify(message.outputData),
         updatedAt: new Date()
@@ -193,6 +194,9 @@ async function setupSubscriptions(
         let data = message.result;
         let nodeObj = JSON.parse(flow!.flow).nodes.find((node: any) => node.id == edges[i].to);
         let schema = nodeObj.inputSchema;
+        if(message.status == 'error'){
+          schema = errorOutputSchema;
+        }
         let nameSpace = nodeObj.nameSpace;
         let mappedData = transformData(data, schema, mappings);
         let eventPayload = {
