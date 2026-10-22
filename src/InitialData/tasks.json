@@ -19,6 +19,15 @@
     "propertyScehema": "{\"$schema\":\"https://json-schema.org\",\"title\":\"DropdownSelection\",\"type\":\"object\",\"properties\":{\"mode\":{\"type\":\"string\",\"input_type\":\"dropdown\",\"title\":\"ExecutionMode\",\"description\":\"Selectwhethertoappendthedataorcalculateanewvalue.\",\"enum\":[\"append\",\"calculate\"]}},\"required\":[\"mode\"]}"
   },
   {
+    "name": "Subtraction",
+    "category": "Math",
+    "image": "math-subtract-icon.png",
+    "namespace": "com.veracode.math.subtract",
+    "inputSchema": "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"type\":\"object\",\"required\":[\"input_x\",\"input_y\"],\"properties\":{\"input_x\":{\"type\":\"string\",\"description\":\"\"},\"input_y\":{\"type\":\"string\",\"description\":\"\"}}}",
+    "outputSchema": "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"type\":\"object\",\"required\":[\"result\"],\"properties\":{\"result\":{\"type\":\"string\",\"description\":\"\"}}}",
+    "propertyScehema": "{\"$schema\":\"https://json-schema.org\",\"title\":\"DropdownSelection\",\"type\":\"object\",\"properties\":{\"mode\":{\"type\":\"string\",\"input_type\":\"dropdown\",\"title\":\"ExecutionMode\",\"description\":\"Selectwhethertoappendthedataorcalculateanewvalue.\",\"enum\":[\"append\",\"calculate\"]}},\"required\":[\"mode\"]}"
+  },
+  {
     "name": "Create App",
     "category": "Application",
     "image": "application-create-icon.png",
